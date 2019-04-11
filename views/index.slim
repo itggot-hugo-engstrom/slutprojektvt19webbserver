@@ -1,0 +1,14 @@
+h1 hej :)
+
+- if session[:username] != nil
+    p = session[:username]
+    p welcomee
+- else
+    p not logged in >:((
+
+form action="/login" method="POST"
+    input type="text" placeholder="enter name" name="username"
+    input type="password" placeholder="enter password now" name="passowrd"
+    input type="submit" value="pressss"
+
+a href="/register" register if no acc
