@@ -2,7 +2,9 @@ require 'sinatra'
 require 'slim'
 require 'SQLite3'
 require 'bcrypt'
+require 'byebug'
 
+enable :sessions
 
 get ('/') do
     slim(:index)
@@ -15,8 +17,8 @@ post('/login') do
     user = result.first
     hash_password = BCrypt::Password.new(user["password"])
     p hash_password
-
-    if hash_password == params[:password]
+    password_check = db.execute('SELECT password FROM tabell WHERE email = ?', params[:email])
+    if password_check.any? == false
         session[:username] = params[:username]
         session[:userId] = user["id"]
         redirect('/logged')
@@ -25,15 +27,31 @@ post('/login') do
     end
 end
 
+post('/logout') do
+    session.destroy
+    redirect('/')
+end
+
 post('/register') do
+    # byebug()
     db = SQLite3::Database.new("db/users.db")
     hash_password = BCrypt::Password.create(params[:password])
-    db.execute('INSERT INTO tabell(username, password, email) VALUES (?, ?, ?)', params[:username], hash_password, params[:email])
-    redirect('/')
+
+    user_already_exists = db.execute('SELECT email FROM tabell where email = ?', params[:email])
+    if user_already_exists.any?
+        redirect('/oops')
+    else
+        db.execute('INSERT INTO tabell(username, password, email) VALUES (?, ?, ?)', params[:username], hash_password, params[:email])
+        redirect('/')
+    end
 end
 
 get ('/oops') do
     slim(:oops)
+end
+
+get ('/logged') do
+    slim(:logged)
 end
 
 get ('/register') do
